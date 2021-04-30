@@ -4,6 +4,11 @@ Servlet `ToDoServlet.java` dispatch URL:`http://localhost:8080/todo/` to JSP pag
 By clicking the link `all-items` below, servlet `ToDoServlet.java` generates randomly some new items, adds them to request attribute, then dispatches request to URL:`http://localhost:8080/todo/all-items`, which corresponds to JSP page `jsp/all-items.jsp`,
 ![all-items-jsp](imgs/all-items-jsp.png)
 
+<b>!!Note: if we type `http://localhost:8080/todo/index.html`, 
+    1. URL = `http://localhost:8080/todo/index.html`
+    2. URI = `/todo/index.html`
+    3. Context Path = `/todo` </b>
+
 ### Install Gradle
 ```
 brew install gradle
@@ -43,6 +48,18 @@ select `basic` project, set the project name `todo`. We get an empty project as 
     c. `gradle-wrapper.jar` is the gradle runtime library. 
     d. `gradle-wrapper.properties` refers to the configuration file.
 3. `settings.gradle` is gradle meta-configurations.
+
+Execute `gradlew build` or `gradlew.bat build` can build the project just as what `gradle build` do.
+```
+$ gradlew.bat build
+Downloading https://services.gradle.org/distributions/gradle-5.0-all.zip
+.....................................................................................
+Unzipping C:\Documents and Settings\Claudia\.gradle\wrapper\dists\gradle-5.0-all\ac27o8rbd0ic8ih41or9l32mv\gradle-5.0-all.zip to C:\Documents and Settings\Claudia\.gradle\wrapper\dists\gradle-5.0-al\ac27o8rbd0ic8ih41or9l32mv
+Set executable permissions for: C:\Documents and Settings\Claudia\.gradle\wrapper\dists\gradle-5.0-all\ac27o8rbd0ic8ih41or9l32mv\gradle-5.0\bin\gradle
+
+BUILD SUCCESSFUL in 12s
+1 actionable task: 1 executed
+```
 
 ### Work with gradle
 In `build.gradle` we use `java` plugin and `war` plugin's default settings. Since we use `servlet` in our project, an extra dependencies `jakarta.servlet` is required. 
@@ -164,7 +181,7 @@ Execute `jar tf build/libs/todo.war`, we see the structure of `todo.war` file,
 ### Run Tomcat
 My `$CATALINA_HOME` = `/usr/local/Cellar/tomcat/10.0.5/`. Edit file `libexec/conf/server.xml`. The `appBase` attribute in `<Host>` section defines the web applications location. I set it to,
 ```
-<Host name="localhost"  appBase="~/github/spring-in-action/demo/gradle-demo/build/libs" ... ...>
+<Host name="localhost"  appBase="~/github/sia/demo/gradle-demo/build/libs" ... ...>
 ```
 Now Tomcat can find my `todo.war` web application. Start Tomcat,
 ```
@@ -174,3 +191,14 @@ Open browser and check `localhost:8080/todo/`. When everything is done, shut dow
 ```
 catalina stop
 ```
+
+### References
+1. [Gradle in Action - Chapter 3]
+
+Useful Notes:
+    1. Tomcat v-10.0.5 migrates to `Servlet 5.0`, which uses `jakarta.servlet` instead of `javax.servlet`. 
+    2. Do NOT use `jstl`, always cause problems.
+    3. If we type `http://localhost:8080/todo/index.html`, 
+        a. URL = `http://localhost:8080/todo/index.html`
+        b. URI = `/todo/index.html`
+        c. Context Path = `/todo` 
