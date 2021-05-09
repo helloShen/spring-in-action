@@ -7,32 +7,28 @@
 
 plugins {
     id 'java'
-    id 'application'
 }
 
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '11'
-
-application {
-    mainClass = 'com.ciaoshen.sia.ch01.knight.KnightMain'
-}
 
 repositories {
 	mavenCentral()
 }
 
 dependencies {
-    implementation('org.springframework:spring-context:5.3.6')
-    implementation('org.springframework:spring-beans:5.3.6')
+    implementation(platform('org.springframework:spring-framework-bom:5.3.6'))
+    implementation('org.springframework:spring-context')
+    implementation('org.springframework:spring-beans')
+    testImplementation('org.springframework:spring-test')
     testImplementation(platform('org.junit:junit-bom:5.7.1'))
-	testImplementation('org.junit.jupiter:junit-jupiter')
-    testImplementation('org.mockito:mockito-all:1.10.19')
-    implementation('org.aspectj:aspectjweaver:1.9.6')
+    testImplementation('org.junit.jupiter:junit-jupiter')
+    testImplementation('junit:junit:4.13.2')
 }
 
 test {
     useJUnitPlatform()
     testLogging {
-        events "passed", "skipped", "failed"
+        events 'passed'
     }
 }

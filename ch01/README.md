@@ -7,7 +7,7 @@ dependencies {
 ```
 
 Suggest to visit: <https://start.spring.io/> to initialize a `gradle` or `maven` project online. Configure as follow, we can download `knight.zip`,
-![ch01-knight-init](imgs/ch01-knight-init.png)
+<!-- ![ch01-knight-init](imgs/ch01-knight-init.png) -->
 
 Unzip `knight.zip` file, move it to ROOT of this chapter: `~/github/spring-in-action/ch01/`,
 ```
@@ -114,7 +114,9 @@ Root project 'ch01'
 
 Run `gradle build` in root directory `ch01` will buill all sub-projects. If we go to `ch01/knight` sub-directory, and run `gradle build` will only build `knight` sub project.
 
-### Knight project
+### Knight DI
+DI refers to Dependency Injection. 
+
 ##### Step1: Create 4 basic class:
     1. `Knight.java` (interface)
     2. `BraveKnight.java`
@@ -143,13 +145,12 @@ public class KnightConfig {
 In `KnightMain.java`,
 ```java
 /* load spring context, defined by annotation in 'KnightConfig.java' */
-GenericApplicationContext context = new AnnotationConfigApplicationContext(KnightConfig.class);
+AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(KnightConfig.class);
 /* get knight bean */
 Knight knight = context.getBean(Knight.class);
 /* use knight bean */
 knight.embarkOnQuest();
 ```
-!!Note: we use `GenericApplicationContext` instead of `ApplicationContext` just because the latter doesn't have `close()` method.
 
 ##### Step4: Add dependencies
 Add `spring-context` library in `build.gradle`,
@@ -189,14 +190,26 @@ Embarking on quest to slay the dragon!
 BUILD SUCCESSFUL in 1s
 ```
 
-### Test Knight
-For more information about junit settings in gradle, check my note of junit-demo: <>
+### Test Knight DI
+For more information about junit 5 settings in gradle, check my note of junit-demo: <https://github.com/helloShen/spring-in-action/blob/24efe2a1aed35c39de5a8c78d5389fef192a93f5/demo/junit5-demo/README.md>
+
+Using `@Test` to annotate the test methods (junit 5), 
+```java
+@Test
+public void knightShouldEmbarkOnQuest() {
+    Quest mockQuest = mock(Quest.class);
+    BraveKnight knight = new BraveKnight(mockQuest);
+    knight.embarkOnQuest();
+    verify(mockQuest, times(1)).embark();
+}
+```
+
 Add `dependencies` into `build.gradle`,
 ```groovy
 dependencies {
     testImplementation(platform('org.junit:junit-bom:5.7.1'))
 	testImplementation('org.junit.jupiter:junit-jupiter')
-    testImplementation group: 'org.mockito', name: 'mockito-all', version: '1.10.19'
+    testImplementation('org.mockito:mockito-all:1.10.19')
 }
 ```
 
@@ -225,6 +238,89 @@ BraveKnightTest > knightShouldEmbarkOnQuest() PASSED
 
 BUILD SUCCESSFUL in 6s
 ```
+
+### Knight AOP
+Let's follow this tutorial: [Spring AOP Annotation] <https://www.baeldung.com/spring-aop-annotation> to custom an AOP Annotation.
+
+First, define `@MinstrelAround` annotation as follow,
+```java
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface MinstrelAround {}
+```
+
+Then create an Aspect, to define the behavior of this annotation.
+```java
+@Aspect
+public class MinstrelAroundAdvice {
+
+    /**
+     * Using @Autowired annotation, 
+     * spring context will create automatically an instance of Minstrel 
+     */
+    @Autowired
+    private Minstrel minstrel;
+
+    /**
+     * Define the behavier of @MinstreAround annotation.
+     * And bind @MinstrelAround annotation with MinstrelAroundAdvice aspect.
+     */
+    @Around("@annotation(MinstrelAround)")
+    public Object minstrelAroundAdvice(ProceedingJoinPoint joinPoint) throws Throwable {
+        minstrel.singBeforeQuest();
+        Object proceed = joinPoint.proceed();
+        minstrel.singAfterQuest();
+        return proceed;
+    }
+
+}
+```
+
+Annotate target method `BraveKnight::embarkOnQuest()` with `@MinstrelAround` annotation,
+```java
+public class BraveKnight implements Knight {
+    // ... ...
+    @MinstrelAround
+    public void embarkOnQuest() {
+        quest.embark();
+    }
+```
+
+At last, add `MinstrelAroundAdvice` as a bean into `KnightConfig` configuration class. Don't forget to add `@EnableAspectJAutoProxy` tag, which tell spring to automaticly generate `MinstrelAroundAdvice` aspect for you.
+```java
+@Configuration
+@EnableAspectJAutoProxy
+public class KnightConfig {
+
+    // other beans omitted
+
+    @Bean 
+    public MinstrelAroundAdvice minstrelAroundProceed() {
+        return new MinstrelAroundAdvice();
+    }
+}
+```
+Add two new depencencies `spring-beans` (for `@Autowired` annotation), and `aspectjweaver` for `@Aspect`, 
+```
+implementation('org.springframework:spring-beans:5.3.6')
+implementation('org.aspectj:aspectjweaver:1.9.6')
+```
+Run application,
+```
+MacBook-Pro-de-Wei:knight Wei$ gradle run
+
+> Task :knight:run
+Fa la la, the knight is so brave!
+Embarking on quest to slay the dragon!
+Tee hee hee, the brave knight dis embark on a quest!
+
+BUILD SUCCESSFUL in 2s
+```
+
+### Spring Framework 5 Modules
+Official Doc: <https://docs.spring.io/spring-framework/docs/5.0.0.RC3/spring-framework-reference/overview.html#overview-modules>
+
+![spring-overview.png](imgs/spring-overview.png)
 
 
 ### References
